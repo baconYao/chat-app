@@ -26,10 +26,26 @@ sequelize model:generate --name User --attributes username:string,email:string
 ```
 sequelize db:migrate
 ```
+取消上次的migration (會將 DB 資料清掉)
+```
+sequelize db:migrate:undo
+搭配 show tables; 查看上次建立的 table 會消失。
+取消所有的migration
+sequelize db:migrate:undo:all
+```
 
 新增兩筆資料
 ```
 mysql> insert into `users` (`username`, `email`, `createdAt`, `updatedAt`) values ('bacon', 'bacon@mail.com', '2020-09-24 10:00:00', '2020-09-24 10:00:00');
 
 mysql> insert into `users` (`username`, `email`, `createdAt`, `updatedAt`) values ('lynn', 'lynn@mail.com', '2020-09-24 11:00:00', '2020-09-24 11:00:00');
+```
+查看特定table的 schema
+```
+查看 users table 欄位
+mysql> describes users;
+```
+清空user table 的資料
+```
+mysql> delete from users;
 ```
