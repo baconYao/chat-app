@@ -14,7 +14,7 @@ docker run --name classsed-chat-mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATAB
 
 ```
 透過 Terminal 用 root 帳號登入 chat 資料庫
-docker run -it mysql -u root -p chat
+docker exec -it classsed-chat-mysql mysql -u root -p chat
 ```
 
 ### 新增 model (table)
