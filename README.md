@@ -33,6 +33,11 @@ sequelize db:migrate:undo
 取消所有的migration
 sequelize db:migrate:undo:all
 ```
+建立新的model叫 Message。 用來紀錄對話的內容，傳送人及收訊人
+```
+sequelize model:generate --name Message --attributes content:string,uuid:uuid,from:string,to:string
+sequelize db:migrate
+```
 
 新增兩筆資料
 ```

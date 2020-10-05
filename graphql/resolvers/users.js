@@ -3,25 +3,16 @@ const { UserInputError, AuthenticationError } = require('apollo-server');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
 
-const { User } = require('../models');
-const { JWT_SECRET } = require('../config/env.json');
+const { User } = require('../../models');
+const { JWT_SECRET } = require('../../config/env.json');
 
 module.exports = {
   Query: {
     getUsers: async (_, __, context) => {
       try {
-        let user;
-        if (context.req && context.req.headers.authorization) {
-          
-          const token = context.req.headers.authorization.split('Bearer ')[1]
-          console.log(token);
-          jwt.verify(token, JWT_SECRET, (err, decodedToken) => {
-            if (err) {
-              throw new AuthenticationError('Unauthenticated')
-            }
-            user = decodedToken;
-          });
-        }
+        let { user } = context;
+        if (!user) throw new AuthenticationError('Unauthenticated');
+        
         // 在聊天室中，要取得所有的 user，但不包含自己
         const users = await User.findAll({
           where: { username: { [Op.ne]: user.username } }
@@ -106,6 +97,6 @@ module.exports = {
         }
         throw new UserInputError('Bad input', { errors });
       }
-    }
+    },
   }
 };
