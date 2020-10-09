@@ -3,6 +3,8 @@ import { Row, Col, Form, Button } from 'react-bootstrap';
 import { gql, useLazyQuery } from '@apollo/client';
 import { Link } from 'react-router-dom';
 
+import { useAuthDispatch } from '../context/auth';
+
 const LOGIN_USER = gql`
   query login(
     $username: String!
@@ -26,13 +28,16 @@ export default function Login(props) {
     password: "",
   });
   const [errors, setErrors] = useState({});
+  
+  const dispatch = useAuthDispatch();
+
   // useLazyQuery 是 load on demain
   // useQuery 是component載入後，會自動去 fetch 資料，取得 news feed、文章之類的適用
   const [loginUser, { loading }] = useLazyQuery(LOGIN_USER, {
     onError: (err) => setErrors(err.graphQLErrors[0].extensions.errors),
     onCompleted: (data) => {
       // 登入完成後，處理 token
-      localStorage.setItem('token', data.login.token);
+      dispatch({ type: 'LOGIN', payload: data.login });
       props.history.push('/');
     }
   });
