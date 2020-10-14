@@ -3,9 +3,11 @@ const { gql } = require('apollo-server');
 module.exports = gql`
   type User {
     username: String!
-    email: String!
+    email: String
     token: String
     createdAt: String!
+    imageUrl: String!
+    latestMessage: Message
   }
   type Message {
     uuid: String!
@@ -17,7 +19,7 @@ module.exports = gql`
   type Query {
     getUsers: [User]!
     login(username: String!, password: String!): User!
-    getMessage(from: String!): [Message]!
+    getMessages(from: String!): [Message]!
   }
 
   type Mutation {

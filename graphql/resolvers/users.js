@@ -3,7 +3,7 @@ const { UserInputError, AuthenticationError } = require('apollo-server');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
 
-const { User } = require('../../models');
+const { Message, User } = require('../../models');
 const { JWT_SECRET } = require('../../config/env.json');
 
 module.exports = {
@@ -12,11 +12,30 @@ module.exports = {
       try {
         let { user } = context;
         if (!user) throw new AuthenticationError('Unauthenticated');
-        
+
         // 在聊天室中，要取得所有的 user，但不包含自己
-        const users = await User.findAll({
+        let users = await User.findAll({
+          attributes: ['username', 'imageUrl', 'createdAt'],  // 告訴 DB 要撈的欄位
           where: { username: { [Op.ne]: user.username } }
         });
+
+        // 取得此位 user 的所有 messages，無論是 from / to
+        const allUserMessages = await Message.findAll({
+          where: {
+            [Op.or]: [{ from: user.username }, { to: user.username }]
+          },
+          order: [['createdAt', 'DESC']],
+        });
+
+        // 將此位 user 的最後訊息給撈出來，並將之對應到另一位對談的 user B (為了做聊天室側邊欄位的最後顯示訊息使用)
+        users = users.map((otherUser) => {
+          const latestMessage = allUserMessages.find((message) => {
+            return message.from === otherUser.username || message.to === otherUser.username
+          });
+          otherUser.latestMessage = latestMessage;
+          return otherUser;
+        });
+
         return users;
       } catch (err) {
         console.log(err);
