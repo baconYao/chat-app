@@ -5,7 +5,7 @@ const { Message, User } = require('../../models');
 
 module.exports = {
   Query: {
-    getMessage: async (parent, { from }, { user }) => {
+    getMessages: async (parent, { from }, { user }) => {
       try {
         if (!user) throw new AuthenticationError('Unauthenticated');
         // 取得送訊人資訊

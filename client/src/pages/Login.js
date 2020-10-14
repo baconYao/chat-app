@@ -46,6 +46,7 @@ export default function Login(props) {
     event.preventDefault();
 
     // console.log(variables);
+    // 傳參數給 grqphql (參數包含 login 需要的 username 和 password)
     loginUser({ variables })
   }
 

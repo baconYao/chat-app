@@ -38,6 +38,23 @@ sequelize db:migrate:undo:all
 sequelize model:generate --name Message --attributes content:string,uuid:uuid,from:string,to:string
 sequelize db:migrate
 ```
+產生 seeders 資料到 DB
+```
+產生 seeders/xxxxx-create-users.js
+sequelize seed:generate --name create-users
+
+產生 seeders/xxxxx-create-messages.js
+sequelize seed:generate --name create-messages
+
+migrate DB undo
+sequelize db:migrate:undo:all
+
+migrate DB
+sequelize db:migrate
+
+將 seeders 內的資料產生進 DB
+sequelize db:seed:all
+```
 
 新增兩筆資料
 ```
