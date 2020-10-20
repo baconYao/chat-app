@@ -1,26 +1,11 @@
 import React, { Fragment, useState, useEffect } from 'react';
-import { Row, Col, Button, Image } from 'react-bootstrap';
+import { Row, Col, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { gql, useQuery, useLazyQuery } from '@apollo/client';
+import { gql, useLazyQuery } from '@apollo/client';
 
-import { useAuthDispatch } from '../context/auth';
+import { useAuthDispatch } from '../../context/auth';
 
-const GET_USERS = gql `
-  query getUsers {
-    getUsers{
-      username
-      imageUrl
-      createdAt
-      latestMessage {
-        uuid
-        from
-        to
-        content
-        createdAt
-      }
-    }
-  }
-`;
+import Users from './Users';
 
 const GET_MESSAGES = gql`
   query getMessages($from: String!) {
@@ -43,8 +28,7 @@ export default function Home({ history }) {
     history.push('/login');
   }
 
-  // 進到主頁後，有些資料是需要立即被 Query 的，因此要使用 useQuery
-  const {loading, data, error} = useQuery(GET_USERS);
+
   
   // load on demand，點擊左側特定 user 的對話筐，會去取得和此 user 所有的對話
   const [getMessages, { loading: messagesLoading, data: messagesData}] = useLazyQuery(GET_MESSAGES);
@@ -57,34 +41,9 @@ export default function Home({ history }) {
   }, [selectedUser]);
 
   // 若有某位 user 的所有對話，則 console log 出來 (此處的 getMessages 是要和 typeDefs.js 內 Query 的 getMessages 相同)
-  if(messagesData) console.log(messagesData.getMessages);
+  // if(messagesData) console.log(messagesData.getMessages);
 
-  // 聊天室側邊欄位的顯示樣式
-  let usersMarkup;
-  if (!data || loading) {
-    usersMarkup = <p>Loading...</p>
-  } else if(data.getUsers.length === 0) {
-    usersMarkup = <p>No users have joined yet.</p>
-  } else if(data.getUsers.length > 0) {
-    usersMarkup = data.getUsers.map((user) => {
-      return (
-        <div className="d-flex p-3" key={user.username} onClick={() => setSelectedUser(user.username)}>
-          <Image
-            src={user.imageUrl}
-            roundedCircle
-            className="mr-2"
-            style={{ width: 50, height: 50, objectFit: 'cover'}} 
-          />
-          <div>
-            <p className="text-success">{user.username}</p>
-            <p className="font-weight-light">
-              {user.latestMessage ? user.latestMessage.content : "You are now connected!" }
-            </p>
-          </div>
-        </div>
-      )
-    });
-  }
+  
 
   return (
     <Fragment>
@@ -99,9 +58,7 @@ export default function Home({ history }) {
       </Row>
 
       <Row className="bg-white">
-        <Col xs={4} className="p-0 bg-secondary">
-          {usersMarkup}
-        </Col>
+        <Users setSelectedUser={setSelectedUser} selectedUser={selectedUser}/>
         <Col xs={8}>
           {messagesData && messagesData.getMessages.length > 0 ? (
             messagesData.getMessages.map(message => (
