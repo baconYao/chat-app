@@ -22,9 +22,11 @@ const GET_USERS = gql `
   }
 `;
 
-export default function Users({ setSelectedUser, selectedUser }) {
+export default function Users() {
   const dispatch = useMessageDispatch();
   const { users } = useMessageState();
+  const selectedUser = users?.find(u => u.selected === true)?.username;
+
   // 進到主頁後，有些資料是需要立即被 Query 的，因此要使用 useQuery
   const {loading} = useQuery(GET_USERS, {
     // 取得所有的 users 後，塞進 message context 內
@@ -48,7 +50,7 @@ export default function Users({ setSelectedUser, selectedUser }) {
           // 利用 classNames，若此 user 被記為 selected (true)，則加上 'bg-white' 這個 class
           className={classNames("user-div d-flex p-3", {'bg-white': selected})}
           key={user.username}
-          onClick={() => setSelectedUser(user.username)}
+          onClick={() => dispatch({ type: 'SET_SELECTED_USER', payload: user.username })}
         >
           <Image
             src={user.imageUrl}
