@@ -7,12 +7,13 @@ import { useAuthDispatch } from '../../context/auth';
 import Users from './Users';
 import Messages from './Messages';
 
-export default function Home({ history }) {
+export default function Home() {
   const dispatch = useAuthDispatch();
   // 處理 logout 的邏輯
   const logout = () => {
     dispatch({ type: 'LOGOUT' });
-    history.push('/login');
+    // 避免登入不同的 user，卻看到自己在做左側畫框。
+    window.location.href = '/login';
   }  
 
   return (
