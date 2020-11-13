@@ -1,4 +1,4 @@
-const { UserInputError, AuthenticationError } = require('apollo-server');
+const { UserInputError, AuthenticationError, withFilter } = require('apollo-server');
 const { Op } = require('sequelize');
 
 const { Message, User } = require('../../models');
@@ -33,7 +33,7 @@ module.exports = {
   Mutation: {
     sendMessage: async (parent, args, context) => {
       try {
-        let { user } = context;
+        let { user, pubsub } = context;
         if (!user) throw new AuthenticationError('Unauthenticated');
         let { to, content } = args;
         const recipient = await User.findOne({ where: {username: to} });
@@ -52,11 +52,33 @@ module.exports = {
           to,
           content
         });
+
+        // 推送訊息 mewMessage 到標記 NEW_MESSAGE label 的 pubsub
+        pubsub.publish('NEW_MESSAGE', { newMessage: message });
+
         return message;
       } catch(err) {
         console.log(err);
         throw err;
       }
+    }
+  },
+  Subscription: {
+    newMessage: {
+      /*
+        註冊一個pubsub監聽 NEW_MESSAGE 的事件
+        透過 withFilter 過濾掉不屬於訊息收送端的雙方
+      */
+      subscribe: withFilter((_, __, { pubsub, user }) => {
+        if(!user) throw new AuthenticationError('Unauthenticated');
+        return pubsub.asyncIterator(['NEW_MESSAGE']);
+      }, (parent, _, { user }) => {
+        let { newMessage } = parent;
+        if(newMessage.from === user.username || newMessage.to === user.username) {
+          return true;
+        }
+        return false;
+      })
     }
   }
 };

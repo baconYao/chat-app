@@ -41,10 +41,10 @@ export default function Messages() {
   const [getMessages, { loading: messagesLoading, data: messagesData}] = useLazyQuery(GET_MESSAGES);
   
   const [sendMessage] = useMutation(SEND_MESSAGE, {
-    onCompleted: data => dispatch({ type: 'ADD_MESSAGE', payload: {
-      username: selectedUser.username,
-      message: data.sendMessage
-    }}),
+    // onCompleted: data => dispatch({ type: 'ADD_MESSAGE', payload: {
+    //   username: selectedUser.username,
+    //   message: data.sendMessage
+    // }}),
     onError: err => console.log(err)
   });
 
