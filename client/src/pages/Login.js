@@ -38,7 +38,9 @@ export default function Login(props) {
     onCompleted: (data) => {
       // 登入完成後，處理 token
       dispatch({ type: 'LOGIN', payload: data.login });
-      props.history.push('/');
+      // props.history.push('/');
+      // 登入完成後，refresh page
+      window.location.href = '/';
     }
   });
 
