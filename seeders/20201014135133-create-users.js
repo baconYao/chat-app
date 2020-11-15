@@ -39,6 +39,14 @@ module.exports = {
         createdAt,
         updatedAt,
       },
+      {
+        username: 'peter',
+        email: 'peter@email.com',
+        password: password,
+        imageUrl:'',
+        createdAt,
+        updatedAt, 
+      }
     ])
   },
 
