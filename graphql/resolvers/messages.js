@@ -1,7 +1,7 @@
-const { UserInputError, AuthenticationError, withFilter } = require('apollo-server');
+const { UserInputError, AuthenticationError, ForbiddenError, withFilter } = require('apollo-server');
 const { Op } = require('sequelize');
 
-const { Message, User } = require('../../models');
+const { Message, User, Reaction } = require('../../models');
 
 module.exports = {
   Query: {
@@ -61,6 +61,54 @@ module.exports = {
         console.log(err);
         throw err;
       }
+    },
+    reactToMessage: async (_, { uuid, content }, { user, pubsub }) => {
+      const reactions = ['❤️', '😆', '😯', '😢', '😡', '👍', '👎'];
+      try {
+        // Validate reaction content
+        if(!reactions.includes(content)) {
+          throw new UserInputError('Invalid reaction');
+        }
+
+        // Get user
+        const username = user ? user.username : '';
+        user = await User.findOne({ where: {username }});
+        if(!user) {
+          throw new AuthenticationError('Unauthenticated');
+        }
+
+        // Get message
+        const message = await Message.findOne({ where: {uuid}});
+        if(!message) throw new UserInputError('message not found');
+
+        if(message.from !== user.username && message.to !== user.username) {
+          throw new ForbiddenError('Unauthorized');
+        }
+
+        let reaction = await Reaction.findOne({
+          where: { messageId: message.id, userId: user.id }
+        });
+
+        if(reaction) {
+          // Reaction exists, update it
+          reaction.content = content;
+          await reaction.save();
+        } else {
+          // Reaction doesn't exists, create it
+          reaction = await Reaction.create({
+            messageId: message.id,
+            userId: user.id,
+            content
+          });
+        }
+
+        // 推送訊息 mewMessage 到標記 NEW_MESSAGE label 的 pubsub
+        pubsub.publish('NEW_REACTION', { newReaction: reaction });
+
+        return reaction;
+      } catch(err) {
+        throw err;
+      }
     }
   },
   Subscription: {
@@ -71,10 +119,29 @@ module.exports = {
       */
       subscribe: withFilter((_, __, { pubsub, user }) => {
         if(!user) throw new AuthenticationError('Unauthenticated');
-        return pubsub.asyncIterator(['NEW_MESSAGE']);
+        return pubsub.asyncIterator('NEW_MESSAGE');
       }, (parent, _, { user }) => {
         let { newMessage } = parent;
         if(newMessage.from === user.username || newMessage.to === user.username) {
+          return true;
+        }
+        return false;
+      })
+    },
+    newReaction: {
+      /*
+        註冊一個pubsub監聽 NEW_REACTION 的事件
+        透過 withFilter 過濾掉不屬於訊息收送端的雙方
+      */
+      subscribe: withFilter((_, __, { pubsub, user }) => {
+        console.log("==================")
+        if(!user) throw new AuthenticationError('Unauthenticated');
+        return pubsub.asyncIterator('NEW_REACTION');
+      }, async ({newReaction}, _, { user }) => {
+        // destruction from apollo hook
+        // 因為 message 是另一個 type，因此從 reaction 取得時，必須等待 reaction 去 qeury message 的資料。
+        const message = await newReaction.getMessage();
+        if(message.from === user.username || message.to === user.username) {
           return true;
         }
         return false;
