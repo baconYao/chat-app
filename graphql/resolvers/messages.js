@@ -62,7 +62,7 @@ module.exports = {
         throw err;
       }
     },
-    reactToMessage: async (_, { uuid, content }, { user }) => {
+    reactToMessage: async (_, { uuid, content }, { user, pubsub }) => {
       const reactions = ['❤️', '😆', '😯', '😢', '😡', '👍', '👎'];
       try {
         // Validate reaction content
@@ -102,6 +102,9 @@ module.exports = {
           });
         }
 
+        // 推送訊息 mewMessage 到標記 NEW_MESSAGE label 的 pubsub
+        pubsub.publish('NEW_REACTION', { newReaction: reaction });
+
         return reaction;
       } catch(err) {
         throw err;
@@ -116,10 +119,29 @@ module.exports = {
       */
       subscribe: withFilter((_, __, { pubsub, user }) => {
         if(!user) throw new AuthenticationError('Unauthenticated');
-        return pubsub.asyncIterator(['NEW_MESSAGE']);
+        return pubsub.asyncIterator('NEW_MESSAGE');
       }, (parent, _, { user }) => {
         let { newMessage } = parent;
         if(newMessage.from === user.username || newMessage.to === user.username) {
+          return true;
+        }
+        return false;
+      })
+    },
+    newReaction: {
+      /*
+        註冊一個pubsub監聽 NEW_REACTION 的事件
+        透過 withFilter 過濾掉不屬於訊息收送端的雙方
+      */
+      subscribe: withFilter((_, __, { pubsub, user }) => {
+        console.log("==================")
+        if(!user) throw new AuthenticationError('Unauthenticated');
+        return pubsub.asyncIterator('NEW_REACTION');
+      }, async ({newReaction}, _, { user }) => {
+        // destruction from apollo hook
+        // 因為 message 是另一個 type，因此從 reaction 取得時，必須等待 reaction 去 qeury message 的資料。
+        const message = await newReaction.getMessage();
+        if(message.from === user.username || message.to === user.username) {
           return true;
         }
         return false;
