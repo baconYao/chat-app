@@ -56,6 +56,11 @@ sequelize db:migrate
 sequelize db:seed:all
 ```
 
+建立新的model叫 Reaction 紀錄對話的emoji
+```
+sequelize model:generate --name Reaction --attributes content:string,uuid:uuid
+```
+
 新增兩筆資料
 ```
 mysql> insert into `users` (`username`, `email`, `createdAt`, `updatedAt`) values ('bacon', 'bacon@mail.com', '2020-09-24 10:00:00', '2020-09-24 10:00:00');
