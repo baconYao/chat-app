@@ -20,8 +20,8 @@ module.exports = gql`
     uuid: String!
     content: String!
     createdAt: String!
-    Message: Message!
-    User: User!
+    message: Message!
+    user: User!
   }
   type Query {
     getUsers: [User]!
