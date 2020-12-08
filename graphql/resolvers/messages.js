@@ -22,6 +22,7 @@ module.exports = {
             to: {[Op.in]: usernames}
           },
           order: [['createdAt', 'DESC']],
+          include: [{ model: Reaction, as: 'reactions' }]
         });
         return messages;
       } catch(err) {
@@ -134,7 +135,6 @@ module.exports = {
         透過 withFilter 過濾掉不屬於訊息收送端的雙方
       */
       subscribe: withFilter((_, __, { pubsub, user }) => {
-        console.log("==================")
         if(!user) throw new AuthenticationError('Unauthenticated');
         return pubsub.asyncIterator('NEW_REACTION');
       }, async ({newReaction}, _, { user }) => {

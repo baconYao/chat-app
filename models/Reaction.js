@@ -12,8 +12,10 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       const { User, Message } = models;
-      this.belongsTo(Message);
-      this.belongsTo(User);
+      // 預設會根據 reactions 表內的 MessageId 欄位去 messages 表找對應的訊息
+      // 但我們在 reactions 表內沒有 MessageId，而是 messageId。user 同理。
+      this.belongsTo(Message, {foreignKey: 'messageId'});
+      this.belongsTo(User, {foreignKey: 'userId'});
     }
   };
   Reaction.init({
