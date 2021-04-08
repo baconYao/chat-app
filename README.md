@@ -1,5 +1,5 @@
 # chat-app
-This is a chat app by using Nodejs, GraphQL, MySQL
+This is a chat app by using Nodejs, GraphQL, MySQL. I cloned **Classsed** tutorial from his [youtube channel](https://www.youtube.com/watch?v=LvfJ2wEpMrs&list=PLMhAeHCz8S3_VYiYxpcXtMz96vePOuOX3&index=1)
 
 ## 建立 MySQL
 
